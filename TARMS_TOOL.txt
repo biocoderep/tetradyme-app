@@ -1,0 +1,55 @@
+tarm_primer_design_tool/
+│
+├── backend/
+│   ├── app.py                      # Backend API server (FastAPI recommended for async & auth)
+│   ├── auth.py                     # User authentication (JWT, OAuth, etc.)
+│   ├── models.py                   # Database models (users, projects, sequences)
+│   ├── database.py                 # DB connection and ORM setup (e.g., SQLAlchemy)
+│   ├── primer_design.py            # Primer design logic
+│   ├── tarm_detection.py           # T-arm detection logic
+│   ├── structure_prediction.py    # tRNA secondary structure prediction integration
+│   ├── visualization.py            # Backend support for visualization data (e.g., JSON for frontend)
+│   ├── export.py                   # Export results to CSV, Excel, PDF
+│   ├── batch_processing.py         # Batch processing logic for multiple sequences
+│   ├── utils.py                   # Helper functions
+│   ├── requirements.txt            # Backend dependencies
+│   └── tests/
+│       ├── test_auth.py
+│       ├── test_primer_design.py
+│       └── test_batch_processing.py
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Auth/               # Login, Signup, Profile components
+│   │   │   ├── SequenceInput/      # Single and batch input components
+│   │   │   ├── PrimerResults/      # Display primers, T-arm info
+│   │   │   ├── Visualization/      # tRNA structure & primer binding visualization
+│   │   │   ├── Export/             # Export buttons and options
+│   │   │   └── ProjectManagement/  # Save/load user projects
+│   │   ├── api.js                  # API calls (auth, primer design, batch, export)
+│   │   ├── App.js                  # Main app with routing
+│   │   ├── routes.js               # Frontend routes (login, dashboard, etc.)
+│   │   ├── styles.css
+│   │   └── utils.js                # Frontend helpers
+│   ├── package.json
+│   └── tests/
+│       ├── auth.test.js
+│       ├── primerResults.test.js
+│       └── visualization.test.js
+│
+├── docs/
+│   ├── design.md
+│   ├── api_spec.md                 # API endpoints and usage
+│   └── user_guide.md               # How to use the tool and features
+│
+├── docker/
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.frontend
+│   └── docker-compose.yml
+│
+├── migrations/                    # DB migration scripts (Alembic or similar)
+│
+├── .gitignore
+└── README.md
