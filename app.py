@@ -168,8 +168,8 @@ def calculate_amplicon_sizes(seq_record, snp_pos, ref, alt, of_primer, or_primer
 # ----- Main App -----
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    st.title("Tetradyme")
-    st.subheader("Tetra-Primer ARMS-PCR Designer")
+    st.title("TETRADYME")
+    st.subheader("TETRADYME: A Web-Based Tool for Tetra-Primer ARMS-PCR Design")
     st.info("Design inner primers for Tetra-Primer ARMS-PCR based on SNP information and target melting temperature.")
 
 # Sidebar
