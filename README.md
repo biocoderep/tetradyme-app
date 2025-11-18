@@ -4,7 +4,7 @@ Tetradyme is an interactive bioinformatics web application designed to automate 
 
 ## Live Application
 
-The application is deployed and accessible at: [Insert your Streamlit deployment URL here]
+The application is deployed and accessible at: https://tinyurl.com/tetradyme
 
 ## Overview
 
