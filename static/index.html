@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetradyme - ARMS-PCR Designer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>TETRADYME</h1>
+            <p>A Web-Based Tool for Tetra-Primer ARMS-PCR Design</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="layout">
+            <!-- Sidebar for Controls -->
+            <aside class="sidebar">
+                <h2>Parameters</h2>
+                <form id="design-form">
+                    <section class="form-section">
+                        <h3>Upload Files</h3>
+                        <div class="form-group file-upload">
+                            <label for="fasta_file">FASTA File (.fasta, .fa)</label>
+                            <input type="file" id="fasta_file" name="fasta_file" accept=".fasta,.fa" required>
+                        </div>
+                        <div class="form-group file-upload">
+                            <label for="csv_file">SNP Data (.csv)</label>
+                            <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+                            <small class="helper-text">Format: ID, pos, ref, alt, outer_tm</small>
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Reaction Conditions</h3>
+                        <div class="form-group">
+                            <label for="na">Na+ (mM)</label>
+                            <input type="number" id="na" name="na" step="0.1" value="50.0" min="0" max="1000">
+                        </div>
+                        <div class="form-group">
+                            <label for="mg">Mg2+ (mM)</label>
+                            <input type="number" id="mg" name="mg" step="0.1" value="0.0" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="dntps">dNTPs (mM)</label>
+                            <input type="number" id="dntps" name="dntps" step="0.1" value="0.0" min="0" max="10">
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Primer Parameters</h3>
+                        <div class="form-group">
+                            <label for="tm_tolerance">Tm Tolerance (°C)</label>
+                            <input type="number" id="tm_tolerance" name="tm_tolerance" step="0.1" value="1.0" min="0.1" max="5.0">
+                        </div>
+                    </section>
+
+                    <section class="form-section">
+                        <h3>Outer Primers (Optional)</h3>
+                        <div class="form-group">
+                            <label for="of_primer">Outer Forward Primer</label>
+                            <input type="text" id="of_primer" name="of_primer" placeholder="e.g. ACGTACGT">
+                        </div>
+                        <div class="form-group">
+                            <label for="or_primer">Outer Reverse Primer</label>
+                            <input type="text" id="or_primer" name="or_primer" placeholder="e.g. TGCATGCA">
+                        </div>
+                    </section>
+
+                    <button type="submit" class="btn-primary" id="submit-btn">
+                        <span id="btn-text">Design Primers</span>
+                        <div class="spinner" id="btn-spinner" style="display: none;"></div>
+                    </button>
+                </form>
+            </aside>
+
+            <!-- Main Content for Results -->
+            <section class="results-container" id="results-container">
+                <div class="welcome-message" id="welcome-message">
+                    <div class="icon">🧬</div>
+                    <h2>Welcome to Tetradyme</h2>
+                    <p>Upload your FASTA and SNP data to start designing Tetra-Primer ARMS-PCR inner primers.</p>
+                </div>
+
+                <div id="error-message" class="error-message" style="display: none;"></div>
+
+                <div id="results-content" style="display: none;">
+                    <div class="summary-cards">
+                        <div class="card">
+                            <div class="card-title">Successful</div>
+                            <div class="card-value success" id="success-count">0</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Failed</div>
+                            <div class="card-value error" id="failed-count">0</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Success Rate</div>
+                            <div class="card-value" id="success-rate">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="results-actions">
+                        <h3>Primer Design Results</h3>
+                        <button id="download-btn" class="btn-secondary">Download CSV</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Seq ID</th>
+                                    <th>Pos</th>
+                                    <th>Ref/Alt</th>
+                                    <th>Target Tm</th>
+                                    <th>IF Primer</th>
+                                    <th>IF Tm</th>
+                                    <th>IR Primer</th>
+                                    <th>IR Tm</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Rows generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="gel-container" class="gel-container" style="display: none;">
+                        <h3>Gel Electrophoresis Visualization</h3>
+                        <div id="gel-plot"></div>
+                        <p class="gel-note"><strong>Interpretation:</strong> Outer product appears in all samples. Wild-type and mutant products are allele-specific.</p>
+                    </div>
+
+                    <div id="failed-snps-container" class="failed-snps-container" style="display: none;">
+                        <h3>Failed SNPs</h3>
+                        <ul id="failed-snps-list"></ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
