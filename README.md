@@ -1,58 +1,72 @@
-# Tetradyme - ARMS-PCR Designer
+# Tetradyme: Tetra-Primer ARMS-PCR Design Suite
 
-Tetradyme is a web-based tool for designing inner primers for Tetra-Primer ARMS-PCR based on SNP information and target melting temperatures.
+**Tetradyme** is a high-performance, web-based bioinformatics tool engineered for the automated thermodynamic design and optimization of inner primers for Tetra-Primer Amplification Refractory Mutation System Polymerase Chain Reaction (T-ARMS-PCR).
 
-## Architecture
+---
 
-This project has been migrated from Streamlit to a **FastAPI backend** with a **Vanilla HTML/JS/CSS frontend**. 
-The core logic has been isolated into `core.py`, making the application highly modular, extensible, and performant.
+## Scientific Background
 
-### Core Logic Enhancements
-- **Expanded Primer Search Space**: The algorithm now evaluates primer lengths from 15 to 35 bp (up from the restrictive 18-25 bp in the legacy app). This drastically improves the design success rate.
-- **Graceful Tm Tolerance Fallback**: Instead of outright failing if no primer combination strictly meets the Tm tolerance, the algorithm now returns the *best available* primer pair if it falls within a slight relaxed tolerance window (+2.0°C). This ensures users still get viable candidate primers for difficult SNPs instead of a complete design failure.
+### Principle of Tetra-Primer ARMS-PCR
+Tetra-primer ARMS-PCR is a rapid, cost-effective, and highly specific method for genotyping single nucleotide polymorphisms (SNPs). It employs four uniquely designed primers in a single multiplex PCR reaction tube to simultaneously detect both wild-type and mutant alleles.
 
-## Prerequisites
+The system utilizes two primer pairs:
+1. **Outer Primers (OF & OR)**: Flank the SNP region, serving as an internal reaction control and generating a large "outer" amplicon.
+2. **Inner Primers (IF & IR)**: Designed in opposite orientations. The 3' terminal nucleotide of each inner primer is positioned exactly over the SNP site, making them strictly allele-specific. 
 
-- Python 3.9+ 
-- Or Docker (optional)
+```text
+       Outer Forward (OF) ---------------------------> 
+5' -----------------------------------------*----------------------------------------- 3'
+3' -----------------------------------------*----------------------------------------- 5'
+                        <------------------- Inner Reverse (IR) (Allele 1 Specific)
+                                            Inner Forward (IF) ----------------------> (Allele 2 Specific)
+                                            <------------------------- Outer Reverse (OR)
+```
+*(Where `*` represents the targeted Single Nucleotide Polymorphism)*
 
-## Setup & Run (Local Development)
+### Mechanism of Action
+The technique relies on the principle that Taq DNA polymerase lacks 3' → 5' exonuclease proofreading activity. If the 3' end of an inner primer mismatches the template DNA (i.e., the wrong allele is present), polymerase extension is structurally hindered (refractory). Amplification only proceeds efficiently if the 3' terminal base perfectly matches the target allele.
 
-1. **Install dependencies**
-   Open your terminal (e.g. PowerShell or Command Prompt), navigate to the project directory, and run:
-   ```bash
-   pip install -r requirements.txt
-   ```
+The outer and inner primers are intentionally engineered asymmetrically around the SNP. This asymmetry guarantees that the two allele-specific amplicons (OF + IR vs. IF + OR) have distinctly different molecular weights, allowing for unambiguous visual differentiation via standard agarose gel electrophoresis.
 
-2. **Run the server**
-   Use Python to run the Uvicorn server:
-   ```bash
-   python -m uvicorn main:app --port 8000
-   ```
-   *(Note: If you have uvicorn in your system PATH, you can also just run `uvicorn main:app --port 8000`)*
+---
 
-3. **Open the app**
-   Once the terminal says "Application startup complete", open your web browser and navigate to:
-   [http://127.0.0.1:8000](http://127.0.0.1:8000)
+## Application Architecture
 
-## Run via Docker
+Tetradyme features a robust decoupled architecture:
+- **Backend (Core Logic)**: Driven by `FastAPI`, `BioPython`, and `primer3-py`. Performs exhaustive thermodynamic simulations, nearest-neighbor melting temperature (Tm) modeling, and secondary structure (hairpin/homodimer) predictions.
+- **Frontend (UI)**: A decoupled, responsive Vanilla JS/CSS client that utilizes native `plotly.js` to simulate gel electrophoresis banding patterns based on computed amplicon sizes.
 
-1. **Build the image**
-   ```bash
-   docker build -t tetradyme-app .
-   ```
+### Algorithmic Enhancements
+- **Dynamic Search Space**: The search algorithm evaluates primer sequences ranging from 15 to 35 base pairs, vastly outperforming legacy algorithms restricted to 18-25 bp constraints.
+- **Thermodynamic Fallback Logic**: If strict user-defined Tm tolerances cannot be met due to localized AT/GC biases, the algorithm utilizes a greedy heuristic to identify and return the nearest thermodynamically stable primer pair within an expanded ±2.0°C deviation threshold, ensuring a successful design yield for challenging genomic targets.
 
-2. **Run the container**
-   ```bash
-   docker run -p 8000:8000 tetradyme-app
-   ```
-   The application will be accessible at [http://localhost:8000](http://localhost:8000).
+---
 
-## Usage
+## Deployment & Setup
 
-1. Upload your FASTA file.
-2. Upload your SNP Data CSV file (must include columns: `ID, pos, ref, alt, outer_tm`).
-3. Set your Reaction Conditions (Na+, Mg2+, dNTPs).
-4. Specify Tm tolerance and optional Outer Primers.
-5. Click **Design Primers**.
-6. View the summary, detailed results table, gel electrophoresis visualization, and download the results CSV.
+The repository is fully Dockerized and container-ready for cloud deployments.
+
+### Local Development
+To run the server locally, install the core dependencies and launch the backend using Uvicorn:
+
+```bash
+# 1. Install pip dependencies
+pip install -r requirements.txt
+
+# 2. Start the FastAPI application
+python -m uvicorn main:app
+```
+Once the application startup is complete, the application will be accessible locally via your web browser.
+
+### Cloud Deployment (Render / Hugging Face)
+Tetradyme can be deployed as a public web service in minutes:
+1. Connect this repository to your preferred hosting provider (e.g., Render, Railway, or Hugging Face Spaces).
+2. Select **Docker** as the deployment environment.
+3. The provider will automatically parse the included `Dockerfile`, resolve dependencies, and generate your live public URL. 
+
+---
+
+## Data Input Constraints
+The processing engine strictly requires two inputs:
+1. **Genomic Template**: A standard `.fasta` or `.fa` file containing the target sequences.
+2. **SNP Index**: A `.csv` containing exactly five required headers: `ID, pos, ref, alt, outer_tm` where `pos` represents the 1-based index of the polymorphic site.
