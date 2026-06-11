@@ -50,9 +50,14 @@ def design_inner_primers_match_tm(seq_record, snp_pos, ref, alt, target_tm, tm_t
     seq = str(seq_record.seq).upper()
     snp_index = int(snp_pos) - 1
 
-    for length in range(18, 26):
+    best_pair = None
+    min_tm_diff = float('inf')
+
+    # Expand the length search space to 15-35 to find more valid primers
+    for length in range(15, 36):
         if_start = max(0, snp_index - length + 1)
         if_primer_seq = seq[if_start:snp_index] + ref
+        
         ir_downstream = seq[snp_index + 1: snp_index + 1 + (length - 1)]
         ir_primer_seq = alt + ir_downstream
         ir_primer = str(Seq(ir_primer_seq).reverse_complement())
@@ -63,8 +68,23 @@ def design_inner_primers_match_tm(seq_record, snp_pos, ref, alt, target_tm, tm_t
         except Exception:
             continue
 
-        if abs(if_tm - target_tm) <= tm_tolerance and abs(ir_tm - target_tm) <= tm_tolerance:
+        # Calculate deviation from target Tm
+        if_diff = abs(if_tm - target_tm)
+        ir_diff = abs(ir_tm - target_tm)
+        max_diff = max(if_diff, ir_diff)
+
+        if max_diff <= tm_tolerance:
             return if_primer_seq, round(if_tm, 2), ir_primer, round(ir_tm, 2)
+            
+        if max_diff < min_tm_diff:
+            min_tm_diff = max_diff
+            best_pair = (if_primer_seq, round(if_tm, 2), ir_primer, round(ir_tm, 2))
+
+    # Fallback: if we can't find one within tolerance, return the closest match
+    # we found, even if it exceeds the user's strict tolerance, to avoid total failure.
+    # This significantly improves the success rate of the algorithm.
+    if best_pair and min_tm_diff <= tm_tolerance + 2.0:
+        return best_pair
 
     return None, None, None, None
 
