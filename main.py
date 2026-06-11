@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from core import process_primers
 
+import os
+
 app = FastAPI(title="Tetradyme API")
 
 app.add_middleware(
@@ -15,8 +17,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Get the absolute path of the directory containing main.py
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 # Mount static files to serve the frontend
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.post("/api/design")
 async def design_primers(
